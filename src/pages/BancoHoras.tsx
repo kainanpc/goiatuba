@@ -10,6 +10,9 @@ import {
   TrendingDown,
   Calendar,
   Users as UsersIcon,
+  CheckCircle2,
+  XCircle,
+  Clock3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +44,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type EntryType = "extra" | "plantao" | "feriado" | "folga_usada" | "ajuste";
+type EntryStatus = "pending" | "approved" | "rejected";
 
 interface TimeEntry {
   id: string;
@@ -50,6 +54,10 @@ interface TimeEntry {
   hours: number;
   description: string | null;
   created_at: string;
+  status: EntryStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
 }
 
 const TYPE_META: Record<
@@ -72,11 +80,17 @@ function fmtHours(h: number) {
 }
 
 function balanceOf(entries: TimeEntry[]) {
-  return entries.reduce((s, e) => {
+  return entries.filter((e) => e.status === "approved").reduce((s, e) => {
     const meta = TYPE_META[e.entry_type];
     return s + Number(e.hours) * meta.sign;
   }, 0);
 }
+
+const STATUS_META: Record<EntryStatus, { label: string; tone: string; icon: typeof CheckCircle2 }> = {
+  pending: { label: "Aguardando aprovação", tone: "text-warning", icon: Clock3 },
+  approved: { label: "Aprovado", tone: "text-success", icon: CheckCircle2 },
+  rejected: { label: "Rejeitado", tone: "text-destructive", icon: XCircle },
+};
 
 export default function BancoHoras() {
   const { user, role } = useAuth();
@@ -85,7 +99,7 @@ export default function BancoHoras() {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
-  const [scope, setScope] = useState<"mine" | "all">("mine");
+  const [scope, setScope] = useState<"mine" | "all" | "pending">("mine");
 
   useEffect(() => {
     document.title = "Banco de Horas · SCFV";
@@ -95,7 +109,12 @@ export default function BancoHoras() {
     if (!user) return;
     setLoading(true);
     const query = supabase.from("time_entries").select("*").order("entry_date", { ascending: false });
-    const filtered = scope === "mine" || !isAdmin ? query.eq("user_id", user.id) : query;
+    const filtered =
+      scope === "pending" && isAdmin
+        ? query.eq("status", "pending")
+        : scope === "mine" || !isAdmin
+        ? query.eq("user_id", user.id)
+        : query;
     const [e, p] = await Promise.all([
       filtered,
       supabase.from("profiles").select("id, full_name"),
@@ -109,6 +128,11 @@ export default function BancoHoras() {
     setProfiles(map);
     setLoading(false);
   };
+
+  const pendingCount = useMemo(
+    () => entries.filter((e) => e.status === "pending").length,
+    [entries],
+  );
 
   useEffect(() => {
     loadAll();
@@ -176,13 +200,23 @@ export default function BancoHoras() {
         />
       </div>
 
-      <Tabs value={scope} onValueChange={(v) => setScope(v as "mine" | "all")} className="space-y-4">
+      <Tabs value={scope} onValueChange={(v) => setScope(v as typeof scope)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="mine">Meus registros</TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="all">
-              <UsersIcon className="mr-1 h-4 w-4" /> Toda equipe
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="all">
+                <UsersIcon className="mr-1 h-4 w-4" /> Toda equipe
+              </TabsTrigger>
+              <TabsTrigger value="pending">
+                <Clock3 className="mr-1 h-4 w-4" /> Pendentes
+                {pendingCount > 0 && (
+                  <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -204,13 +238,13 @@ export default function BancoHoras() {
               </CardContent>
             </Card>
           ) : scope === "all" ? (
-            <TeamGrouped entries={entries} profiles={profiles} onDeleted={loadAll} />
+            <TeamGrouped entries={entries} profiles={profiles} onChanged={loadAll} />
           ) : (
             <EntryList
               entries={entries}
               profiles={profiles}
-              showUser={false}
-              onDeleted={loadAll}
+              showUser={scope === "pending"}
+              onChanged={loadAll}
             />
           )}
         </TabsContent>
