@@ -377,6 +377,10 @@ export type Database = {
           entry_type: Database["public"]["Enums"]["time_entry_type"]
           hours: number
           id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["time_entry_status"]
           updated_at: string
           user_id: string
         }
@@ -388,6 +392,10 @@ export type Database = {
           entry_type: Database["public"]["Enums"]["time_entry_type"]
           hours: number
           id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["time_entry_status"]
           updated_at?: string
           user_id: string
         }
@@ -399,6 +407,10 @@ export type Database = {
           entry_type?: Database["public"]["Enums"]["time_entry_type"]
           hours?: number
           id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["time_entry_status"]
           updated_at?: string
           user_id?: string
         }
@@ -444,6 +456,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "employee"
+      time_entry_status: "pending" | "approved" | "rejected"
       time_entry_type:
         | "extra"
         | "plantao"
@@ -578,6 +591,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "employee"],
+      time_entry_status: ["pending", "approved", "rejected"],
       time_entry_type: ["extra", "plantao", "feriado", "folga_usada", "ajuste"],
     },
   },
