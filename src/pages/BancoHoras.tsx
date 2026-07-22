@@ -10,6 +10,9 @@ import {
   TrendingDown,
   Calendar,
   Users as UsersIcon,
+  CheckCircle2,
+  XCircle,
+  Clock3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +44,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type EntryType = "extra" | "plantao" | "feriado" | "folga_usada" | "ajuste";
+type EntryStatus = "pending" | "approved" | "rejected";
 
 interface TimeEntry {
   id: string;
@@ -50,6 +54,10 @@ interface TimeEntry {
   hours: number;
   description: string | null;
   created_at: string;
+  status: EntryStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
 }
 
 const TYPE_META: Record<
@@ -72,11 +80,17 @@ function fmtHours(h: number) {
 }
 
 function balanceOf(entries: TimeEntry[]) {
-  return entries.reduce((s, e) => {
+  return entries.filter((e) => e.status === "approved").reduce((s, e) => {
     const meta = TYPE_META[e.entry_type];
     return s + Number(e.hours) * meta.sign;
   }, 0);
 }
+
+const STATUS_META: Record<EntryStatus, { label: string; tone: string; icon: typeof CheckCircle2 }> = {
+  pending: { label: "Aguardando aprovação", tone: "text-warning", icon: Clock3 },
+  approved: { label: "Aprovado", tone: "text-success", icon: CheckCircle2 },
+  rejected: { label: "Rejeitado", tone: "text-destructive", icon: XCircle },
+};
 
 export default function BancoHoras() {
   const { user, role } = useAuth();
@@ -85,7 +99,7 @@ export default function BancoHoras() {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
-  const [scope, setScope] = useState<"mine" | "all">("mine");
+  const [scope, setScope] = useState<"mine" | "all" | "pending">("mine");
 
   useEffect(() => {
     document.title = "Banco de Horas · SCFV";
@@ -95,7 +109,12 @@ export default function BancoHoras() {
     if (!user) return;
     setLoading(true);
     const query = supabase.from("time_entries").select("*").order("entry_date", { ascending: false });
-    const filtered = scope === "mine" || !isAdmin ? query.eq("user_id", user.id) : query;
+    const filtered =
+      scope === "pending" && isAdmin
+        ? query.eq("status", "pending")
+        : scope === "mine" || !isAdmin
+        ? query.eq("user_id", user.id)
+        : query;
     const [e, p] = await Promise.all([
       filtered,
       supabase.from("profiles").select("id, full_name"),
@@ -109,6 +128,11 @@ export default function BancoHoras() {
     setProfiles(map);
     setLoading(false);
   };
+
+  const pendingCount = useMemo(
+    () => entries.filter((e) => e.status === "pending").length,
+    [entries],
+  );
 
   useEffect(() => {
     loadAll();
@@ -176,13 +200,23 @@ export default function BancoHoras() {
         />
       </div>
 
-      <Tabs value={scope} onValueChange={(v) => setScope(v as "mine" | "all")} className="space-y-4">
+      <Tabs value={scope} onValueChange={(v) => setScope(v as typeof scope)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="mine">Meus registros</TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="all">
-              <UsersIcon className="mr-1 h-4 w-4" /> Toda equipe
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="all">
+                <UsersIcon className="mr-1 h-4 w-4" /> Toda equipe
+              </TabsTrigger>
+              <TabsTrigger value="pending">
+                <Clock3 className="mr-1 h-4 w-4" /> Pendentes
+                {pendingCount > 0 && (
+                  <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -204,13 +238,13 @@ export default function BancoHoras() {
               </CardContent>
             </Card>
           ) : scope === "all" ? (
-            <TeamGrouped entries={entries} profiles={profiles} onDeleted={loadAll} />
+            <TeamGrouped entries={entries} profiles={profiles} onChanged={loadAll} />
           ) : (
             <EntryList
               entries={entries}
               profiles={profiles}
-              showUser={false}
-              onDeleted={loadAll}
+              showUser={scope === "pending"}
+              onChanged={loadAll}
             />
           )}
         </TabsContent>
@@ -248,11 +282,11 @@ function BalanceCard({
 function TeamGrouped({
   entries,
   profiles,
-  onDeleted,
+  onChanged,
 }: {
   entries: TimeEntry[];
   profiles: Record<string, string>;
-  onDeleted: () => void;
+  onChanged: () => void;
 }) {
   const grouped = useMemo(() => {
     const g: Record<string, TimeEntry[]> = {};
@@ -284,7 +318,7 @@ function TeamGrouped({
                 entries={list}
                 profiles={profiles}
                 showUser={false}
-                onDeleted={onDeleted}
+                onChanged={onChanged}
                 compact
               />
             </CardContent>
@@ -299,13 +333,13 @@ function EntryList({
   entries,
   profiles: _profiles,
   showUser,
-  onDeleted,
+  onChanged,
   compact,
 }: {
   entries: TimeEntry[];
   profiles: Record<string, string>;
   showUser: boolean;
-  onDeleted: () => void;
+  onChanged: () => void;
   compact?: boolean;
 }) {
   const { user, role } = useAuth();
@@ -316,7 +350,19 @@ function EntryList({
     if (error) toast.error("Erro ao remover", { description: error.message });
     else {
       toast.success("Registro removido");
-      onDeleted();
+      onChanged();
+    }
+  };
+
+  const setStatus = async (id: string, status: EntryStatus) => {
+    const { error } = await supabase
+      .from("time_entries")
+      .update({ status })
+      .eq("id", id);
+    if (error) toast.error("Erro", { description: error.message });
+    else {
+      toast.success(status === "approved" ? "Registro aprovado" : "Registro rejeitado");
+      onChanged();
     }
   };
 
@@ -332,6 +378,7 @@ function EntryList({
           <ul className="divide-y">
             {entries.map((e) => {
               const meta = TYPE_META[e.entry_type];
+              const st = STATUS_META[e.status];
               const canDelete = isAdmin || e.user_id === user?.id;
               const signed = Number(e.hours) * meta.sign;
               return (
@@ -346,6 +393,10 @@ function EntryList({
                         {signed >= 0 ? "+" : ""}
                         {fmtHours(signed)}
                       </Badge>
+                      <Badge variant="outline" className={st.tone}>
+                        <st.icon className="mr-1 h-3 w-3" />
+                        {st.label}
+                      </Badge>
                     </div>
                     {e.description && (
                       <div className="mt-1 text-sm text-muted-foreground">{e.description}</div>
@@ -355,16 +406,49 @@ function EntryList({
                       {showUser && ` · ${_profiles[e.user_id] ?? ""}`}
                     </div>
                   </div>
-                  {canDelete && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => remove(e.id)}
-                      aria-label="Remover"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex flex-none items-center gap-1">
+                    {isAdmin && e.status === "pending" && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setStatus(e.id, "approved")}
+                          aria-label="Aprovar"
+                          className="text-success"
+                        >
+                          <CheckCircle2 className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setStatus(e.id, "rejected")}
+                          aria-label="Rejeitar"
+                          className="text-destructive"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </Button>
+                      </>
+                    )}
+                    {isAdmin && e.status === "rejected" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatus(e.id, "approved")}
+                      >
+                        Aprovar
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(e.id)}
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </li>
               );
             })}
