@@ -17,6 +17,7 @@ import Master from "./pages/Master";
 import Perfil from "./pages/Perfil";
 import Configuracoes from "./pages/Configuracoes";
 import Relatorios from "./pages/Relatorios";
+import Recompensas from "./pages/Recompensas";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               >
                 <Route path="/" element={<Index />} />
                 <Route path="/conquistas" element={<Conquistas />} />
+                <Route path="/recompensas" element={<Recompensas />} />
                 <Route path="/banco-horas" element={<BancoHoras />} />
                 <Route
                   path="/relatorios"
