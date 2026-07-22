@@ -16,6 +16,7 @@ import Funcionarios from "./pages/Funcionarios";
 import Master from "./pages/Master";
 import Perfil from "./pages/Perfil";
 import Configuracoes from "./pages/Configuracoes";
+import Relatorios from "./pages/Relatorios";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,14 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/conquistas" element={<Conquistas />} />
                 <Route path="/banco-horas" element={<BancoHoras />} />
+                <Route
+                  path="/relatorios"
+                  element={
+                    <ProtectedRoute requireRole="admin">
+                      <Relatorios />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/funcionarios"
                   element={
