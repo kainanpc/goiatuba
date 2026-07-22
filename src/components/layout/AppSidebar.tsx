@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Building2,
   BarChart3,
+  Gift,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 const mainItems = [
   { title: "Início", url: "/", icon: LayoutDashboard },
   { title: "Sistema de Conquistas", url: "/conquistas", icon: Trophy },
+  { title: "Recompensas & Medalhas", url: "/recompensas", icon: Gift },
   { title: "Banco de Horas", url: "/banco-horas", icon: Clock },
 ];
 
