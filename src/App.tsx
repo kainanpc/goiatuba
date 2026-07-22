@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Conquistas from "./pages/Conquistas";
+import BancoHoras from "./pages/BancoHoras";
 import { Placeholder } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -35,16 +36,7 @@ const App = () => (
               >
                 <Route path="/" element={<Index />} />
                 <Route path="/conquistas" element={<Conquistas />} />
-                <Route
-                  path="/banco-horas"
-                  element={
-                    <Placeholder
-                      title="Banco de Horas e Folgas"
-                      description="Registro de plantões, horas extras, feriados e cálculo automático de folgas."
-                      icon={Clock}
-                    />
-                  }
-                />
+                <Route path="/banco-horas" element={<BancoHoras />} />
                 <Route
                   path="/funcionarios"
                   element={
