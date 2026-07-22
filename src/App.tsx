@@ -11,6 +11,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Conquistas from "./pages/Conquistas";
 import { Placeholder } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -33,16 +34,7 @@ const App = () => (
                 }
               >
                 <Route path="/" element={<Index />} />
-                <Route
-                  path="/conquistas"
-                  element={
-                    <Placeholder
-                      title="Sistema de Conquistas"
-                      description="Caderneta virtual das crianças, pontuação, medalhas e lojinha de trocas."
-                      icon={Trophy}
-                    />
-                  }
-                />
+                <Route path="/conquistas" element={<Conquistas />} />
                 <Route
                   path="/banco-horas"
                   element={
