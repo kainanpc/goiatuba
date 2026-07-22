@@ -282,11 +282,11 @@ function BalanceCard({
 function TeamGrouped({
   entries,
   profiles,
-  onDeleted,
+  onChanged,
 }: {
   entries: TimeEntry[];
   profiles: Record<string, string>;
-  onDeleted: () => void;
+  onChanged: () => void;
 }) {
   const grouped = useMemo(() => {
     const g: Record<string, TimeEntry[]> = {};
@@ -318,7 +318,7 @@ function TeamGrouped({
                 entries={list}
                 profiles={profiles}
                 showUser={false}
-                onDeleted={onDeleted}
+                onChanged={onChanged}
                 compact
               />
             </CardContent>
@@ -333,13 +333,13 @@ function EntryList({
   entries,
   profiles: _profiles,
   showUser,
-  onDeleted,
+  onChanged,
   compact,
 }: {
   entries: TimeEntry[];
   profiles: Record<string, string>;
   showUser: boolean;
-  onDeleted: () => void;
+  onChanged: () => void;
   compact?: boolean;
 }) {
   const { user, role } = useAuth();
@@ -350,7 +350,19 @@ function EntryList({
     if (error) toast.error("Erro ao remover", { description: error.message });
     else {
       toast.success("Registro removido");
-      onDeleted();
+      onChanged();
+    }
+  };
+
+  const setStatus = async (id: string, status: EntryStatus) => {
+    const { error } = await supabase
+      .from("time_entries")
+      .update({ status })
+      .eq("id", id);
+    if (error) toast.error("Erro", { description: error.message });
+    else {
+      toast.success(status === "approved" ? "Registro aprovado" : "Registro rejeitado");
+      onChanged();
     }
   };
 
@@ -366,6 +378,7 @@ function EntryList({
           <ul className="divide-y">
             {entries.map((e) => {
               const meta = TYPE_META[e.entry_type];
+              const st = STATUS_META[e.status];
               const canDelete = isAdmin || e.user_id === user?.id;
               const signed = Number(e.hours) * meta.sign;
               return (
@@ -380,6 +393,10 @@ function EntryList({
                         {signed >= 0 ? "+" : ""}
                         {fmtHours(signed)}
                       </Badge>
+                      <Badge variant="outline" className={st.tone}>
+                        <st.icon className="mr-1 h-3 w-3" />
+                        {st.label}
+                      </Badge>
                     </div>
                     {e.description && (
                       <div className="mt-1 text-sm text-muted-foreground">{e.description}</div>
@@ -389,16 +406,49 @@ function EntryList({
                       {showUser && ` · ${_profiles[e.user_id] ?? ""}`}
                     </div>
                   </div>
-                  {canDelete && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => remove(e.id)}
-                      aria-label="Remover"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex flex-none items-center gap-1">
+                    {isAdmin && e.status === "pending" && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setStatus(e.id, "approved")}
+                          aria-label="Aprovar"
+                          className="text-success"
+                        >
+                          <CheckCircle2 className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setStatus(e.id, "rejected")}
+                          aria-label="Rejeitar"
+                          className="text-destructive"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </Button>
+                      </>
+                    )}
+                    {isAdmin && e.status === "rejected" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatus(e.id, "approved")}
+                      >
+                        Aprovar
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(e.id)}
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </li>
               );
             })}
