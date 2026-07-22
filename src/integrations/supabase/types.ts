@@ -83,6 +83,81 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          name: string
+          required_points: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name: string
+          required_points?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          required_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      child_badges: {
+        Row: {
+          awarded_at: string
+          awarded_by: string | null
+          badge_id: string
+          child_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          awarded_at?: string
+          awarded_by?: string | null
+          badge_id: string
+          child_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          awarded_at?: string
+          awarded_by?: string | null
+          badge_id?: string
+          child_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_badges_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           active: boolean
@@ -205,6 +280,90 @@ export type Database = {
           id?: string
           phone?: string | null
           role_title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          points_spent: number
+          redeemed_at: string
+          redeemed_by: string | null
+          reward_id: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points_spent: number
+          redeemed_at?: string
+          redeemed_by?: string | null
+          reward_id: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points_spent?: number
+          redeemed_at?: string
+          redeemed_by?: string | null
+          reward_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          active: boolean
+          cost_points: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cost_points: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cost_points?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          stock?: number | null
           updated_at?: string
         }
         Relationships: []
