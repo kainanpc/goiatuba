@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Users, Settings, ShieldCheck, User } from "lucide-react";
+import { Settings, ShieldCheck, User } from "lucide-react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Conquistas from "./pages/Conquistas";
 import BancoHoras from "./pages/BancoHoras";
+import Funcionarios from "./pages/Funcionarios";
 import { Placeholder } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -41,11 +42,7 @@ const App = () => (
                   path="/funcionarios"
                   element={
                     <ProtectedRoute requireRole="admin">
-                      <Placeholder
-                        title="Gestão de Funcionários"
-                        description="Cadastro, edição e permissões da equipe do projeto."
-                        icon={Users}
-                      />
+                      <Funcionarios />
                     </ProtectedRoute>
                   }
                 />
