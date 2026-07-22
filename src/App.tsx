@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Conquistas from "./pages/Conquistas";
 import BancoHoras from "./pages/BancoHoras";
+import Funcionarios from "./pages/Funcionarios";
 import { Placeholder } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -41,11 +42,7 @@ const App = () => (
                   path="/funcionarios"
                   element={
                     <ProtectedRoute requireRole="admin">
-                      <Placeholder
-                        title="Gestão de Funcionários"
-                        description="Cadastro, edição e permissões da equipe do projeto."
-                        icon={Users}
-                      />
+                      <Funcionarios />
                     </ProtectedRoute>
                   }
                 />
