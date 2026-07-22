@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Save, LoaderCircle, KeyRound } from "lucide-react";
+import { User, Save, LoaderCircle, KeyRound, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Perfil() {
@@ -18,6 +18,7 @@ export default function Perfil() {
   const [saving, setSaving] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [changingPw, setChangingPw] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     document.title = "Meu Perfil · SCFV";
@@ -49,6 +50,38 @@ export default function Perfil() {
     toast.success("Senha atualizada");
   }
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Imagem maior que 5MB");
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingAvatar(false);
+      return toast.error("Falha no envio", { description: upErr.message });
+    }
+    const { data: signed, error: sErr } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (sErr || !signed) {
+      setUploadingAvatar(false);
+      return toast.error("Não foi possível gerar URL", { description: sErr?.message });
+    }
+    const { error: pErr } = await supabase
+      .from("profiles")
+      .update({ avatar_url: signed.signedUrl })
+      .eq("id", user.id);
+    setUploadingAvatar(false);
+    if (pErr) return toast.error("Erro ao salvar avatar", { description: pErr.message });
+    await refreshProfile();
+    toast.success("Foto atualizada");
+  }
+
   const roleLabel = role === "owner" ? "Dono" : role === "admin" ? "Administrador" : "Funcionário";
   const initials = (profile?.full_name ?? profile?.email ?? "U").slice(0, 2).toUpperCase();
 
@@ -66,10 +99,31 @@ export default function Perfil() {
 
       <Card className="p-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={profile?.avatar_url ?? undefined} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={profile?.avatar_url ?? undefined} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <label
+              htmlFor="avatar-input"
+              className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+              title="Trocar foto"
+            >
+              {uploadingAvatar ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
+            </label>
+            <input
+              id="avatar-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+              disabled={uploadingAvatar}
+            />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{profile?.full_name || profile?.email}</p>
             <p className="truncate text-sm text-muted-foreground">{profile?.email}</p>
