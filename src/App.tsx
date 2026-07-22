@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Settings, User } from "lucide-react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -15,7 +14,8 @@ import Conquistas from "./pages/Conquistas";
 import BancoHoras from "./pages/BancoHoras";
 import Funcionarios from "./pages/Funcionarios";
 import Master from "./pages/Master";
-import { Placeholder } from "./pages/Placeholder";
+import Perfil from "./pages/Perfil";
+import Configuracoes from "./pages/Configuracoes";
 
 const queryClient = new QueryClient();
 
@@ -50,13 +50,7 @@ const App = () => (
                 <Route
                   path="/configuracoes"
                   element={
-                    <ProtectedRoute requireRole="admin">
-                      <Placeholder
-                        title="Configurações"
-                        description="Preferências gerais e informações institucionais."
-                        icon={Settings}
-                      />
-                    </ProtectedRoute>
+                    <Configuracoes />
                   }
                 />
                 <Route
@@ -67,16 +61,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/perfil"
-                  element={
-                    <Placeholder
-                      title="Meu Perfil"
-                      description="Suas informações pessoais e preferências."
-                      icon={User}
-                    />
-                  }
-                />
+                <Route path="/perfil" element={<Perfil />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
