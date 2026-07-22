@@ -27,14 +27,14 @@ interface PointRow {
   id: string;
   child_id: string;
   activity_id: string | null;
-  educator_id: string | null;
+  awarded_by: string | null;
   points: number;
   created_at: string;
 }
 interface TimeRow {
   id: string;
   user_id: string;
-  type: string;
+  entry_type: string;
   hours: number;
   created_at: string;
 }
@@ -62,8 +62,8 @@ export default function Relatorios() {
         supabase.from("activities").select("id, name"),
         supabase.from("profiles").select("id, full_name, email"),
       ]);
-      setPoints((p.data ?? []) as PointRow[]);
-      setTimes((t.data ?? []) as TimeRow[]);
+      setPoints((p.data ?? []) as unknown as PointRow[]);
+      setTimes((t.data ?? []) as unknown as TimeRow[]);
       setChildren(Object.fromEntries((c.data ?? []).map((r: any) => [r.id, r.full_name])));
       setActivities(Object.fromEntries((a.data ?? []).map((r: any) => [r.id, r.name])));
       setUsers(Object.fromEntries((u.data ?? []).map((r: any) => [r.id, r.full_name || r.email])));
@@ -110,7 +110,7 @@ export default function Relatorios() {
   const hoursByUser = useMemo(() => {
     const m = new Map<string, number>();
     times.forEach((t) => {
-      const sign = t.type === "folga" ? -1 : 1;
+      const sign = t.entry_type === "folga_usada" ? -1 : 1;
       m.set(t.user_id, (m.get(t.user_id) ?? 0) + sign * Number(t.hours));
     });
     return [...m.entries()]
@@ -125,11 +125,11 @@ export default function Relatorios() {
         new Date(p.created_at).toLocaleString("pt-BR"),
         children[p.child_id] ?? "",
         activities[p.activity_id ?? ""] ?? "",
-        users[p.educator_id ?? ""] ?? "",
+        users[p.awarded_by ?? ""] ?? "",
         String(p.points),
       ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${(c ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    const csv = rows.map((r) => r.map((c) => `"${(c ?? "").split('"').join('""')}"`).join(",")).join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
