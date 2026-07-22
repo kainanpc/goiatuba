@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          default_points: number
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_points?: number
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_points?: number
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -43,6 +82,99 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      children: {
+        Row: {
+          active: boolean
+          avatar_url: string | null
+          birth_date: string | null
+          created_at: string
+          created_by: string | null
+          full_name: string
+          gender: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          full_name: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          full_name?: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      point_entries: {
+        Row: {
+          activity_id: string | null
+          awarded_by: string
+          child_id: string
+          created_at: string
+          entry_date: string
+          id: string
+          points: number
+          reason: string | null
+        }
+        Insert: {
+          activity_id?: string | null
+          awarded_by: string
+          child_id: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          points: number
+          reason?: string | null
+        }
+        Update: {
+          activity_id?: string | null
+          awarded_by?: string
+          child_id?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          points?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_entries_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_entries_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Trophy, Clock, Users, Settings, ShieldCheck, User } from "lucide-react";
+import { Clock, Users, Settings, ShieldCheck, User } from "lucide-react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -11,6 +11,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Conquistas from "./pages/Conquistas";
 import { Placeholder } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -33,16 +34,7 @@ const App = () => (
                 }
               >
                 <Route path="/" element={<Index />} />
-                <Route
-                  path="/conquistas"
-                  element={
-                    <Placeholder
-                      title="Sistema de Conquistas"
-                      description="Caderneta virtual das crianças, pontuação, medalhas e lojinha de trocas."
-                      icon={Trophy}
-                    />
-                  }
-                />
+                <Route path="/conquistas" element={<Conquistas />} />
                 <Route
                   path="/banco-horas"
                   element={
