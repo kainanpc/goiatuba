@@ -7,6 +7,7 @@ import {
   Settings,
   ShieldCheck,
   Building2,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,6 +31,7 @@ const mainItems = [
 
 const adminItems = [
   { title: "Funcionários", url: "/funcionarios", icon: Users },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
