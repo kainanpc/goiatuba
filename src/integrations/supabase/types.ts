@@ -209,6 +209,42 @@ export type Database = {
         }
         Relationships: []
       }
+      time_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entry_date: string
+          entry_type: Database["public"]["Enums"]["time_entry_type"]
+          hours: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          entry_type: Database["public"]["Enums"]["time_entry_type"]
+          hours: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          entry_type?: Database["public"]["Enums"]["time_entry_type"]
+          hours?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -249,6 +285,12 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "employee"
+      time_entry_type:
+        | "extra"
+        | "plantao"
+        | "feriado"
+        | "folga_usada"
+        | "ajuste"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -377,6 +419,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "employee"],
+      time_entry_type: ["extra", "plantao", "feriado", "folga_usada", "ajuste"],
     },
   },
 } as const
