@@ -57,28 +57,37 @@ export type Database = {
         Row: {
           action: string
           created_at: string
+          device: string | null
           entity: string | null
           entity_id: string | null
           id: string
+          ip_address: string | null
           metadata: Json | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           action: string
           created_at?: string
+          device?: string | null
           entity?: string | null
           entity_id?: string | null
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           action?: string
           created_at?: string
+          device?: string | null
           entity?: string | null
           entity_id?: string | null
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -200,6 +209,39 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -464,6 +506,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          _action: string
+          _device?: string
+          _entity: string
+          _entity_id?: string
+          _ip?: string
+          _metadata?: Json
+          _user_agent?: string
+        }
+        Returns: string
       }
       set_account_status: {
         Args: {

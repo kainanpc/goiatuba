@@ -1,4 +1,4 @@
-import { Bell, LogOut, Search, ShieldCheck, User as UserIcon } from "lucide-react";
+import { LogOut, Search, ShieldCheck, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 const roleLabel: Record<string, { label: string; className: string }> = {
   owner: { label: "Dono", className: "bg-primary text-primary-foreground" },
@@ -67,9 +68,7 @@ export function AppHeader() {
           </Button>
         )}
 
-        <Button variant="ghost" size="icon" aria-label="Notificações" className="min-h-11 min-w-11">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationsBell />
 
         <ThemeToggle />
 
