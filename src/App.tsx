@@ -21,6 +21,7 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const Relatorios = lazy(() => import("./pages/Relatorios"));
 const Recompensas = lazy(() => import("./pages/Recompensas"));
+const Logs = lazy(() => import("./pages/Logs"));
 
 const RouteFallback = () => (
   <div className="flex min-h-[50vh] items-center justify-center">
@@ -79,6 +80,14 @@ const App = () => (
                   element={
                     <ProtectedRoute requireRole="owner">
                       <Master />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/logs"
+                  element={
+                    <ProtectedRoute requireRole="owner">
+                      <Logs />
                     </ProtectedRoute>
                   }
                 />
