@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Trophy,
@@ -9,10 +9,20 @@ import {
   ArrowRight,
   BookOpen,
   Sparkles,
+  Medal,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+interface RankedChild {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  points: number;
+}
 
 const modules = [
   {
@@ -57,9 +67,39 @@ function greeting() {
 
 export default function Index() {
   const { profile, role } = useAuth();
+  const [top, setTop] = useState<RankedChild[]>([]);
 
   useEffect(() => {
     document.title = "Início · SCFV Prefeitura";
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const [{ data: kids }, { data: pts }] = await Promise.all([
+        supabase.from("children").select("id, full_name, avatar_url").eq("active", true),
+        supabase.from("point_entries").select("child_id, points"),
+      ]);
+      if (cancelled) return;
+      const totals = new Map<string, number>();
+      (pts ?? []).forEach((p: any) => {
+        totals.set(p.child_id, (totals.get(p.child_id) ?? 0) + (p.points ?? 0));
+      });
+      const ranked = (kids ?? [])
+        .map((k: any) => ({ ...k, points: totals.get(k.id) ?? 0 }))
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 3);
+      setTop(ranked);
+    }
+    void load();
+    const channel = supabase
+      .channel("home-ranking")
+      .on("postgres_changes", { event: "*", schema: "public", table: "point_entries" }, () => void load())
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "colega";
@@ -105,6 +145,54 @@ export default function Index() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Top 3 Ranking */}
+      <section>
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="font-display text-xl font-bold sm:text-2xl">Ranking das Crianças</h2>
+            <p className="text-sm text-muted-foreground">Top 3 com maior pontuação acumulada.</p>
+          </div>
+          <Medal className="h-5 w-5 text-muted-foreground" aria-hidden />
+        </div>
+        {top.length === 0 ? (
+          <Card className="p-6 text-center text-sm text-muted-foreground">
+            Ainda não há pontuação registrada.
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {top.map((c, i) => {
+              const medals = [
+                { emoji: "🥇", label: "Ouro", color: "from-amber-400 to-yellow-600", border: "border-amber-400" },
+                { emoji: "🥈", label: "Prata", color: "from-slate-300 to-slate-500", border: "border-slate-400" },
+                { emoji: "🥉", label: "Bronze", color: "from-orange-400 to-orange-700", border: "border-orange-500" },
+              ];
+              const m = medals[i];
+              return (
+                <Card
+                  key={c.id}
+                  className={`relative animate-scale-in overflow-hidden border-2 ${m.border} p-5 shadow-card-soft`}
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${m.color}`} />
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl" aria-hidden>{m.emoji}</div>
+                    <Avatar className="h-14 w-14">
+                      <AvatarImage src={c.avatar_url ?? undefined} alt={c.full_name} />
+                      <AvatarFallback>{c.full_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-base font-bold">{c.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{m.label} lugar</p>
+                      <p className="mt-1 text-lg font-bold text-primary">{c.points} pts</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Quick info */}

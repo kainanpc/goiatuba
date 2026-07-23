@@ -253,6 +253,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: Database["public"]["Enums"]["account_status"]
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -260,9 +261,13 @@ export type Database = {
           id: string
           phone: string | null
           role_title: string | null
+          status_changed_at: string | null
+          status_changed_by: string | null
+          status_reason: string | null
           updated_at: string
         }
         Insert: {
+          account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -270,9 +275,13 @@ export type Database = {
           id: string
           phone?: string | null
           role_title?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Update: {
+          account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -280,6 +289,9 @@ export type Database = {
           id?: string
           phone?: string | null
           role_title?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -453,8 +465,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_account_status: {
+        Args: {
+          _reason?: string
+          _status: Database["public"]["Enums"]["account_status"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
+      account_status: "pending" | "approved" | "rejected" | "disabled"
       app_role: "owner" | "admin" | "employee"
       time_entry_status: "pending" | "approved" | "rejected"
       time_entry_type:
@@ -590,6 +618,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_status: ["pending", "approved", "rejected", "disabled"],
       app_role: ["owner", "admin", "employee"],
       time_entry_status: ["pending", "approved", "rejected"],
       time_entry_type: ["extra", "plantao", "feriado", "folga_usada", "ajuste"],
