@@ -9,6 +9,7 @@ import {
   Building2,
   BarChart3,
   Gift,
+  ScrollText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,7 +38,10 @@ const adminItems = [
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
-const ownerItems = [{ title: "Painel Master", url: "/master", icon: ShieldCheck }];
+const ownerItems = [
+  { title: "Painel Master", url: "/master", icon: ShieldCheck },
+  { title: "Logs do Sistema", url: "/logs", icon: ScrollText },
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
