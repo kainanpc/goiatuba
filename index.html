@@ -5,6 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#1E4FBF" />
+    <!-- Security headers (defense-in-depth via meta; primary headers set by host) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.ipify.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=()" />
     <title>SCFV · Sistema da Prefeitura Municipal</title>
     <meta name="description" content="Sistema institucional interno da Prefeitura para o Serviço de Convivência e Fortalecimento de Vínculos (SCFV): gestão de conquistas, banco de horas e equipe.">
     <meta name="author" content="Prefeitura Municipal" />

@@ -1,5 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3";
+
+const BodySchema = z.object({
+  userId: z.string().uuid({ message: "userId inválido" }),
+});
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -31,8 +36,11 @@ Deno.serve(async (req) => {
     if (!isOwner) return json({ error: "Apenas o Dono pode excluir contas" }, 403);
 
     const body = await req.json().catch(() => ({}));
-    const targetId = body?.userId as string | undefined;
-    if (!targetId) return json({ error: "userId obrigatório" }, 400);
+    const parsed = BodySchema.safeParse(body);
+    if (!parsed.success) {
+      return json({ error: parsed.error.flatten().fieldErrors }, 400);
+    }
+    const targetId = parsed.data.userId;
     if (targetId === callerId) return json({ error: "Você não pode excluir sua própria conta" }, 400);
 
     const { error: dErr } = await admin.auth.admin.deleteUser(targetId);
