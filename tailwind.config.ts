@@ -109,6 +109,13 @@ export default {
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-8px)' }
+				},
+				'wiggle': {
+					'0%, 100%': { transform: 'rotate(0deg)' },
+					'20%': { transform: 'rotate(-12deg)' },
+					'40%': { transform: 'rotate(10deg)' },
+					'60%': { transform: 'rotate(-6deg)' },
+					'80%': { transform: 'rotate(4deg)' }
 				}
 			},
 			animation: {
