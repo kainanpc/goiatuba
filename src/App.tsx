@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,17 +8,25 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import Conquistas from "./pages/Conquistas";
-import BancoHoras from "./pages/BancoHoras";
-import Funcionarios from "./pages/Funcionarios";
-import Master from "./pages/Master";
-import Perfil from "./pages/Perfil";
-import Configuracoes from "./pages/Configuracoes";
-import Relatorios from "./pages/Relatorios";
-import Recompensas from "./pages/Recompensas";
+import { LoaderCircle } from "lucide-react";
+
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Conquistas = lazy(() => import("./pages/Conquistas"));
+const BancoHoras = lazy(() => import("./pages/BancoHoras"));
+const Funcionarios = lazy(() => import("./pages/Funcionarios"));
+const Master = lazy(() => import("./pages/Master"));
+const Perfil = lazy(() => import("./pages/Perfil"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Recompensas = lazy(() => import("./pages/Recompensas"));
+
+const RouteFallback = () => (
+  <div className="flex min-h-[50vh] items-center justify-center">
+    <LoaderCircle className="h-6 w-6 animate-spin text-primary" aria-label="Carregando" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -29,6 +38,7 @@ const App = () => (
         <Sonner richColors closeButton position="top-right" />
         <BrowserRouter>
           <AuthProvider>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route
@@ -76,6 +86,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
