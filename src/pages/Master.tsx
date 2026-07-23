@@ -24,6 +24,19 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { logAudit } from "@/lib/audit";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2, Monitor, Smartphone } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +67,9 @@ interface AuditLog {
   entity_id: string | null;
   metadata: any;
   created_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  device: string | null;
 }
 
 interface Stats {
@@ -158,6 +174,7 @@ export default function Master() {
       _reason: null,
     });
     if (e2) return toast.error("Não foi possível aprovar", { description: e2.message });
+    await logAudit({ action: "user.approve", entity: "profiles", entityId: id, metadata: { role } });
     toast.success(`Aprovado como ${role === "admin" ? "Administrador" : "Funcionário"}`);
     void loadAll();
   }
@@ -169,6 +186,7 @@ export default function Master() {
       _reason: reason ?? null,
     });
     if (error) return toast.error("Ação falhou", { description: error.message });
+    await logAudit({ action: `user.status.${status}`, entity: "profiles", entityId: id, metadata: { reason } });
     const label = { approved: "aprovada", rejected: "reprovada", disabled: "desativada", pending: "pendente" }[status];
     toast.success(`Conta ${label}`);
     void loadAll();
@@ -177,7 +195,21 @@ export default function Master() {
   async function changeRole(id: string, role: AppRole) {
     const { error } = await supabase.rpc("set_user_role", { _user_id: id, _role: role });
     if (error) return toast.error("Não foi possível alterar o papel", { description: error.message });
+    await logAudit({ action: "user.role.change", entity: "user_roles", entityId: id, metadata: { role } });
     toast.success("Papel atualizado");
+    void loadAll();
+  }
+
+  async function deleteUser(id: string, name: string | null) {
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { userId: id },
+    });
+    if (error || (data as any)?.error) {
+      return toast.error("Não foi possível excluir", {
+        description: error?.message ?? (data as any)?.error,
+      });
+    }
+    toast.success(`Conta de ${name ?? "usuário"} excluída definitivamente`);
     void loadAll();
   }
 
@@ -463,10 +495,21 @@ export default function Master() {
                           {log.entity && (
                             <span className="text-xs text-muted-foreground">em {log.entity}</span>
                           )}
+                          {log.device && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              {log.device === "Mobile" ? (
+                                <Smartphone className="h-3 w-3" />
+                              ) : (
+                                <Monitor className="h-3 w-3" />
+                              )}
+                              {log.device}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 truncate text-xs text-muted-foreground">
                           por {userMap[log.user_id ?? ""] ?? "Sistema"}
                           {log.entity_id ? ` · ref ${log.entity_id.slice(0, 8)}` : ""}
+                          {log.ip_address ? ` · IP ${log.ip_address}` : ""}
                         </p>
                       </div>
                       <time className="whitespace-nowrap text-xs text-muted-foreground">
