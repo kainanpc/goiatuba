@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { logAudit } from "@/lib/audit";
 
 export type AppRole = "owner" | "admin" | "employee";
 
@@ -57,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (newSession?.user) {
         // Defer to avoid deadlock
         setTimeout(() => loadUserData(newSession.user.id), 0);
+        if (_event === "SIGNED_IN") {
+          setTimeout(() => {
+            void logAudit({ action: "auth.sign_in", entity: "auth", entityId: newSession.user.id });
+          }, 0);
+        }
       } else {
         setProfile(null);
         setRole(null);
@@ -77,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    await logAudit({ action: "auth.sign_out", entity: "auth", entityId: user?.id ?? null });
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);

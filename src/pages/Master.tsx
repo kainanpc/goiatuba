@@ -439,6 +439,36 @@ export default function Master() {
                                   <Ban className="mr-2 h-4 w-4" /> Bloquear conta
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuSeparator />
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir definitivamente
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Excluir conta definitivamente?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta ação remove {u.full_name ?? u.email} e invalida a sessão do
+                                      usuário. Os dados históricos permanecem, mas o acesso será
+                                      permanentemente revogado.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={() => deleteUser(u.id, u.full_name)}
+                                    >
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
