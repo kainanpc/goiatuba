@@ -385,6 +385,17 @@ function NewChildDialog({
       toast.error("Informe o nome completo da criança.");
       return;
     }
+    if (!form.birth_date) {
+      toast.error("Informe a data de nascimento da criança.");
+      return;
+    }
+    const age = ageFrom(form.birth_date);
+    if (age === null || age < 4 || age > 18) {
+      toast.error("Idade fora do projeto", {
+        description: "O SCFV atende crianças e adolescentes de 4 a 18 anos.",
+      });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("children").insert({
       full_name: form.full_name.trim(),
@@ -431,13 +442,17 @@ function NewChildDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="birth_date">Data de nascimento</Label>
+            <Label htmlFor="birth_date">Data de nascimento *</Label>
             <Input
               id="birth_date"
               type="date"
               value={form.birth_date}
               onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
+              max={new Date().toISOString().slice(0, 10)}
             />
+            <p className="text-xs text-muted-foreground">
+              O SCFV atende crianças e adolescentes de 4 a 18 anos.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="gender">Gênero</Label>
