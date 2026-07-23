@@ -4,6 +4,8 @@ import type { Session, User } from "@supabase/supabase-js";
 
 export type AppRole = "owner" | "admin" | "employee";
 
+export type AccountStatus = "pending" | "approved" | "rejected" | "disabled";
+
 export interface Profile {
   id: string;
   full_name: string | null;
@@ -11,6 +13,8 @@ export interface Profile {
   role_title: string | null;
   phone: string | null;
   avatar_url: string | null;
+  account_status: AccountStatus;
+  status_reason: string | null;
 }
 
 interface AuthContextValue {
